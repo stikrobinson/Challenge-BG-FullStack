@@ -1,0 +1,59 @@
+# Visual Studio and .NET build output
+.vs/
+**/bin/
+**/obj/
+**/TestResults/
+**/artifacts/
+**/publish/
+**/packages/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.csproj.user
+
+# Local logs and temporary files
+**/Logs/
+*.log
+*.tmp
+*.bak
+*.backup
+
+# Local configuration and secrets
+.env
+.env.*
+!**/.env.example
+**/appsettings*.json
+!**/appsettings.example.json
+**/secrets*.json
+**/*.pubxml.user
+**/*.publishsettings
+**/*.pfx
+**/*.p12
+**/*.key
+**/*.pem
+
+# Node.js and Angular output
+**/node_modules/
+**/dist/
+**/.angular/
+**/coverage/
+**/.npm/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE and operating system files
+.idea/
+**/.history/
+**/.vscode-test/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+Desktop.ini

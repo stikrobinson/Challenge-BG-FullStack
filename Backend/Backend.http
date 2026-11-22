@@ -1,0 +1,149 @@
+@Backend_HostAddress = http://127.0.0.1:5139
+
+### Registrar un nuevo usuario
+POST {{Backend_HostAddress}}/api/auth/registro
+Content-Type: application/json
+
+{
+  "email": "admin@inventario.com",
+  "password": "Password123!",
+  "nombre": "Carlos",
+  "apellido": "Mendoza"
+}
+
+### Iniciar sesión (Guarda el token automáticamente en @Token)
+# @name login
+POST {{Backend_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@inventario.com",
+  "password": "Password123!"
+}
+
+### Obtener perfil del usuario autenticado
+GET {{Backend_HostAddress}}/api/auth/perfil
+Authorization: Bearer {{login.response.body.$.token}}
+Accept: application/json
+
+
+### Obtener todos los productos
+GET {{Backend_HostAddress}}/api/productos
+Authorization: Bearer {{login.response.body.$.token}}
+Accept: application/json
+
+### Crear un producto
+POST {{Backend_HostAddress}}/api/productos
+Authorization: Bearer {{login.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "nombre": "Papitas fritas"
+}
+
+### Obtener producto por ID
+GET {{Backend_HostAddress}}/api/productos/1
+Authorization: Bearer {{login.response.body.$.token}}
+Accept: application/json
+
+### Actualizar producto por ID
+PUT {{Backend_HostAddress}}/api/productos/1
+Authorization: Bearer {{login.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "nombre": "Celular Samsung Galaxy S25 Ultra"
+}
+
+### Obtener los lotes de un producto específico
+GET {{Backend_HostAddress}}/api/productos/1/lotes
+Authorization: Bearer {{login.response.body.$.token}}
+Accept: application/json
+
+### Crear un lote desde la ruta de producto (ID ruta == idProducto cuerpo)
+POST {{Backend_HostAddress}}/api/productos/1/lotes
+Authorization: Bearer {{login.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "idProducto": 1,
+  "idProveedor": 1,
+  "precio": 850,
+  "stock": 15
+}
+
+### Eliminar producto por ID
+DELETE {{Backend_HostAddress}}/api/productos/1
+Authorization: Bearer {{login.response.body.$.token}}
+
+### Obtener todos los proveedores
+GET {{Backend_HostAddress}}/api/proveedores
+Authorization: Bearer {{login.response.body.$.token}}
+Accept: application/json
+
+### Crear un proveedor (RUC válido de 10 a 13 caracteres)
+POST {{Backend_HostAddress}}/api/proveedores
+Authorization: Bearer {{login.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "nombre": "Importadora Tech S.A.",
+  "direccion": "Av. Francisco de Orellana, Guayaquil",
+  "ruc": "0991234567001"
+}
+
+#### Obtener proveedor por ID
+GET {{Backend_HostAddress}}/api/proveedores/1
+Authorization: Bearer {{login.response.body.$.token}}
+Accept: application/json
+
+### Actualizar proveedor por ID
+PUT {{Backend_HostAddress}}/api/proveedores/1
+Authorization: Bearer {{login.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "nombre": "Importadora Tech Ecuador S.A.",
+  "direccion": "Av. 9 de Octubre 450, Guayaquil",
+  "ruc": "0991234567001"
+}
+
+### Eliminar proveedor por ID
+DELETE {{Backend_HostAddress}}/api/proveedores/1
+Authorization: Bearer {{login.response.body.$.token}}
+
+### Obtener todos los lotes
+GET {{Backend_HostAddress}}/api/lotes
+Authorization: Bearer {{login.response.body.$.token}}
+Accept: application/json
+
+### Crear un lote (Requiere que existan producto 1 y proveedor 1)
+POST {{Backend_HostAddress}}/api/lotes
+Authorization: Bearer {{login.response.body.$.token}}}
+Content-Type: application/json
+
+{
+  "idProducto": 1,
+  "idProveedor": 1,
+  "precio": 800,
+  "stock": 25
+}
+
+#### Obtener un lote por clave compuesta (idProducto / idProveedor)
+GET {{Backend_HostAddress}}/api/lotes/1/1
+Authorization: Bearer {{login.response.body.$.token}}
+Accept: application/json
+
+### Actualizar precio y stock de un lote (idProducto / idProveedor)
+PUT {{Backend_HostAddress}}/api/lotes/1/1
+Authorization: Bearer {{login.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "precio": 780,
+  "stock": 40
+}
+
+### Eliminar un lote (idProducto / idProveedor)
+DELETE {{Backend_HostAddress}}/api/lotes/1/1
+Authorization: Bearer {{login.response.body.$.token}}

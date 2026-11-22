@@ -1,0 +1,379 @@
+<main *ngIf="!currentUser" class="auth-page">
+  <form
+    class="auth-card"
+    (ngSubmit)="authMode === 'login' ? login() : register()"
+    #authForm="ngForm"
+  >
+    <p class="eyebrow">GESTIÓN DE INVENTARIO</p>
+    <h1>{{ authMode === 'login' ? 'Iniciar sesión' : 'Crear una cuenta' }}</h1>
+    <p class="auth-copy">
+      {{ authMode === 'login' ? 'Ingresa tus credenciales para continuar.' : 'Completa tus datos para registrarte.' }}
+    </p>
+
+    <div *ngIf="errorMessage" class="alert alert-error" role="alert">
+      <span>{{ errorMessage }}</span>
+      <button class="alert-close" type="button" aria-label="Cerrar mensaje" (click)="clearMessages()">×</button>
+    </div>
+    <div *ngIf="successMessage" class="alert alert-success" role="status">{{ successMessage }}</div>
+
+    <ng-container *ngIf="authMode === 'login'; else registrationFields">
+      <label for="login-email">Correo electrónico</label>
+      <input
+        id="login-email"
+        name="email"
+        type="email"
+        autocomplete="username"
+        placeholder="nombre@empresa.com"
+        [(ngModel)]="credentials.email"
+        required
+      />
+      <label for="login-password">Contraseña</label>
+      <input
+        id="login-password"
+        name="password"
+        type="password"
+        autocomplete="current-password"
+        placeholder="Ingresa tu contraseña"
+        [(ngModel)]="credentials.password"
+        required
+      />
+      <button class="button button-primary button-wide" type="submit" [disabled]="submitting || authForm.invalid">
+        <span *ngIf="!submitting">Iniciar sesión</span>
+        <span *ngIf="submitting">Validando...</span>
+      </button>
+      <p class="auth-switch">
+        ¿No tienes cuenta?
+        <button class="link-button" type="button" (click)="setAuthMode('register')">Regístrate</button>
+      </p>
+    </ng-container>
+
+    <ng-template #registrationFields>
+      <label for="register-first-name">Nombre</label>
+      <input
+        id="register-first-name"
+        name="firstName"
+        type="text"
+        autocomplete="given-name"
+        maxlength="100"
+        [(ngModel)]="registration.nombre"
+        required
+      />
+      <label for="register-last-name">Apellido</label>
+      <input
+        id="register-last-name"
+        name="lastName"
+        type="text"
+        autocomplete="family-name"
+        maxlength="100"
+        [(ngModel)]="registration.apellido"
+        required
+      />
+      <label for="register-email">Correo electrónico</label>
+      <input
+        id="register-email"
+        name="registerEmail"
+        type="email"
+        autocomplete="email"
+        placeholder="nombre@empresa.com"
+        [(ngModel)]="registration.email"
+        required
+      />
+      <label for="register-password">Contraseña</label>
+      <input
+        id="register-password"
+        name="registerPassword"
+        type="password"
+        autocomplete="new-password"
+        minlength="8"
+        [(ngModel)]="registration.password"
+        required
+      />
+      <p class="password-hint">Mínimo 8 caracteres, con mayúscula, minúscula, número y símbolo.</p>
+      <button class="button button-primary button-wide" type="submit" [disabled]="submitting || authForm.invalid">
+        <span *ngIf="!submitting">Crear cuenta</span>
+        <span *ngIf="submitting">Registrando...</span>
+      </button>
+      <p class="auth-switch">
+        ¿Ya tienes cuenta?
+        <button class="link-button" type="button" (click)="setAuthMode('login')">Inicia sesión</button>
+      </p>
+    </ng-template>
+  </form>
+</main>
+
+<div *ngIf="currentUser" class="app-shell">
+  <header class="topbar">
+    <div class="topbar-account">
+      <span class="avatar">{{ currentUser.nombre.charAt(0) }}{{ currentUser.apellido.charAt(0) }}</span>
+      <span class="user-details">
+        <strong>{{ currentUser.nombre }} {{ currentUser.apellido }}</strong>
+        <small>{{ currentUser.email }}</small>
+      </span>
+    </div>
+    <button class="button button-secondary logout-action" type="button" (click)="logout()">
+      <span aria-hidden="true">↪</span>
+      <span>Cerrar sesión</span>
+    </button>
+  </header>
+
+  <main id="productos" class="page-content">
+    <div *ngIf="errorMessage" class="alert alert-error page-alert" role="alert">
+      <span>{{ errorMessage }}</span>
+      <button class="alert-close" type="button" aria-label="Cerrar mensaje" (click)="clearMessages()">×</button>
+    </div>
+    <div *ngIf="successMessage" class="alert alert-success page-alert" role="status">
+      <span>{{ successMessage }}</span>
+      <button class="alert-close" type="button" aria-label="Cerrar mensaje" (click)="clearMessages()">×</button>
+    </div>
+
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">RESUMEN DE EXISTENCIAS</p>
+        <h1>Productos</h1>
+        <p class="page-description">Gestiona productos, proveedores, precios y stock por lote.</p>
+      </div>
+      <div class="page-actions">
+        <button class="button button-secondary" type="button" (click)="openNewSupplier()">
+          <span class="plus-icon" aria-hidden="true">+</span> Agregar proveedor
+        </button>
+        <button class="button button-primary add-product-button" type="button" (click)="openNewProduct()">
+          <span class="plus-icon" aria-hidden="true">+</span> Agregar producto
+        </button>
+      </div>
+    </section>
+
+      <section class="summary-grid" aria-label="Resumen del inventario">
+        <article class="summary-card">
+          <span class="summary-icon summary-icon-violet" aria-hidden="true">▦</span>
+          <div><span class="summary-label">Productos registrados</span><strong>{{ products.length }}</strong></div>
+        </article>
+        <article class="summary-card">
+          <span class="summary-icon summary-icon-green" aria-hidden="true">↗</span>
+          <div><span class="summary-label">Unidades en stock</span><strong>{{ totalStock | number }}</strong></div>
+        </article>
+        <article class="summary-card">
+          <span class="summary-icon summary-icon-orange" aria-hidden="true">♧</span>
+          <div><span class="summary-label">Proveedores activos</span><strong>{{ totalSuppliers }}</strong></div>
+        </article>
+      </section>
+
+      <section class="supplier-section" aria-labelledby="supplier-list-title">
+        <header class="supplier-section-heading">
+          <div>
+            <h2 id="supplier-list-title">Proveedores registrados</h2>
+            <p>Administra los proveedores disponibles para los lotes.</p>
+          </div>
+          <span class="lot-count">{{ suppliers.length }} {{ suppliers.length === 1 ? 'proveedor' : 'proveedores' }}</span>
+        </header>
+        <div *ngIf="suppliers.length === 0" class="supplier-empty">
+          Aún no hay proveedores registrados.
+        </div>
+        <div *ngFor="let supplier of suppliers" class="supplier-row">
+          <div class="supplier-identity">
+            <span class="supplier-avatar">{{ supplier.nombre.charAt(0).toUpperCase() }}</span>
+            <strong>{{ supplier.nombre }}</strong>
+          </div>
+          <span class="supplier-address">{{ supplier.direccion }}</span>
+          <span class="supplier-ruc">RUC {{ supplier.ruc }}</span>
+          <button
+            class="text-button text-danger supplier-delete"
+            type="button"
+            [disabled]="submitting"
+            [attr.aria-label]="'Eliminar proveedor ' + supplier.nombre"
+            (click)="deleteSupplier(supplier)"
+          >
+            Eliminar
+          </button>
+        </div>
+      </section>
+
+      <section class="inventory-section">
+        <div class="inventory-toolbar">
+          <div>
+            <h2>Listado de productos</h2>
+            <p>Consulta y actualiza cada producto y sus lotes.</p>
+          </div>
+          <label class="search-box">
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input
+              type="search"
+              name="search"
+              placeholder="Buscar producto o proveedor..."
+              aria-label="Buscar producto o proveedor"
+              [(ngModel)]="searchTerm"
+            />
+            <kbd>/</kbd>
+          </label>
+        </div>
+
+        <div *ngIf="loading" class="loading-state" role="status">
+          <span class="spinner"></span>
+          <span>Cargando inventario...</span>
+        </div>
+
+        <div *ngIf="!loading && filteredProducts.length === 0" class="empty-state">
+          <span class="empty-icon" aria-hidden="true">▦</span>
+          <h3>{{ searchTerm ? 'No encontramos resultados' : 'Aún no hay productos' }}</h3>
+          <p>{{ searchTerm ? 'Prueba con otro nombre de producto o proveedor.' : 'Agrega tu primer producto para comenzar a organizar el inventario.' }}</p>
+          <button *ngIf="!searchTerm" class="button button-primary" type="button" (click)="openNewProduct()">Agregar producto</button>
+        </div>
+
+        <div *ngIf="!loading && filteredProducts.length" class="product-list">
+          <article *ngFor="let product of filteredProducts" class="product-card">
+            <header class="product-header">
+              <div class="product-ident">
+                <span class="product-symbol" aria-hidden="true">{{ product.nombre.charAt(0).toUpperCase() }}</span>
+                <div>
+                  <h3>{{ product.nombre }}</h3>
+                  <span class="product-subtitle">Producto #{{ product.id }}</span>
+                </div>
+              </div>
+              <div class="product-actions">
+                <span class="lot-count">{{ lotsFor(product.id).length }} {{ lotsFor(product.id).length === 1 ? 'lote' : 'lotes' }}</span>
+                <button class="text-button" type="button" (click)="openEditProduct(product)">Editar</button>
+                <button class="text-button text-danger" type="button" (click)="deleteProduct(product)">Eliminar</button>
+              </div>
+            </header>
+
+            <div class="lot-table-heading">
+              <span>PROVEEDOR</span><span>PRECIO</span><span>STOCK</span><span class="lot-actions-heading">ACCIONES</span>
+            </div>
+            <div *ngFor="let lot of lotsFor(product.id)" class="lot-row">
+              <div class="supplier-cell">
+                <span class="supplier-avatar">{{ lot.nombreProveedor.charAt(0).toUpperCase() }}</span>
+                <span><strong>{{ lot.nombreProveedor }}</strong><small>Proveedor #{{ lot.idProveedor }}</small></span>
+              </div>
+              <span class="lot-price">{{ lot.precio | number:'1.0-0' }} <small>USD</small></span>
+              <span class="stock-value" [class.stock-low]="lot.stock < 10">
+                <span class="stock-dot"></span>{{ lot.stock | number }} <small>unidades</small>
+              </span>
+              <div class="lot-actions">
+                <button class="icon-button" type="button" aria-label="Editar lote" title="Editar lote" (click)="openEditLot(product, lot)">✎</button>
+                <button class="icon-button icon-danger" type="button" aria-label="Eliminar lote" title="Eliminar lote" (click)="deleteLot(lot)">×</button>
+              </div>
+            </div>
+            <div *ngIf="lotsFor(product.id).length === 0" class="no-lots">
+              <span>Este producto todavía no tiene lotes registrados.</span>
+            </div>
+            <footer class="product-footer">
+              <button class="add-lot-button" type="button" (click)="openNewLot(product)">
+                <span aria-hidden="true">+</span> Agregar proveedor / lote
+              </button>
+            </footer>
+          </article>
+        </div>
+      </section>
+  </main>
+</div>
+
+<div *ngIf="activeModal" class="modal-backdrop" (click)="closeModal()">
+  <section
+    class="modal-card"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-labelledby]="activeModal === 'product' ? 'product-modal-title' : activeModal === 'lot' ? 'lot-modal-title' : 'supplier-modal-title'"
+    (click)="$event.stopPropagation()"
+  >
+    <button class="modal-close icon-button" type="button" aria-label="Cerrar" (click)="closeModal()">×</button>
+    <ng-container *ngIf="activeModal === 'product'">
+      <p class="eyebrow">{{ editingProduct ? 'EDITAR CATÁLOGO' : 'NUEVO REGISTRO' }}</p>
+      <h2 id="product-modal-title">{{ editingProduct ? 'Editar producto' : 'Agregar producto' }}</h2>
+      <p class="modal-description">Ingresa el nombre que aparecerá en el listado de inventario.</p>
+      <div *ngIf="errorMessage" class="alert alert-error modal-alert" role="alert">{{ errorMessage }}</div>
+      <form class="form-stack" (ngSubmit)="saveProduct()" #productFormRef="ngForm">
+        <label for="product-name">Nombre del producto</label>
+        <input id="product-name" name="productName" type="text" maxlength="100" placeholder="Ej. Café molido" [(ngModel)]="productForm.nombre" required />
+        <div class="modal-actions">
+          <button class="button button-secondary" type="button" (click)="closeModal()">Cancelar</button>
+          <button class="button button-primary" type="submit" [disabled]="submitting || productFormRef.invalid">
+            {{ submitting ? 'Guardando...' : editingProduct ? 'Guardar cambios' : 'Agregar producto' }}
+          </button>
+        </div>
+      </form>
+    </ng-container>
+
+    <ng-container *ngIf="activeModal === 'supplier'">
+      <p class="eyebrow">NUEVO REGISTRO</p>
+      <h2 id="supplier-modal-title">Agregar proveedor</h2>
+      <p class="modal-description">Registra los datos del proveedor para asociarlo a los lotes de productos.</p>
+      <div *ngIf="errorMessage" class="alert alert-error modal-alert" role="alert">{{ errorMessage }}</div>
+      <form class="form-stack" (ngSubmit)="saveSupplier()" #supplierFormRef="ngForm">
+        <label for="supplier-name">Nombre del proveedor</label>
+        <input
+          id="supplier-name"
+          name="supplierName"
+          type="text"
+          maxlength="150"
+          [(ngModel)]="supplierForm.nombre"
+          required
+        />
+        <label for="supplier-address">Dirección</label>
+        <input
+          id="supplier-address"
+          name="supplierAddress"
+          type="text"
+          maxlength="250"
+          [(ngModel)]="supplierForm.direccion"
+          required
+        />
+        <label for="supplier-ruc">RUC</label>
+        <input
+          id="supplier-ruc"
+          name="supplierRuc"
+          type="text"
+          minlength="10"
+          maxlength="13"
+          [(ngModel)]="supplierForm.ruc"
+          required
+        />
+        <p class="field-hint">El RUC debe tener entre 10 y 13 caracteres.</p>
+        <div class="modal-actions">
+          <button class="button button-secondary" type="button" (click)="closeModal()">Cancelar</button>
+          <button class="button button-primary" type="submit" [disabled]="submitting || supplierFormRef.invalid">
+            {{ submitting ? 'Guardando...' : 'Guardar proveedor' }}
+          </button>
+        </div>
+      </form>
+    </ng-container>
+
+    <ng-container *ngIf="activeModal === 'lot' && selectedProduct">
+      <p class="eyebrow">{{ editingLot ? 'ACTUALIZAR EXISTENCIAS' : 'NUEVO LOTE' }}</p>
+      <h2 id="lot-modal-title">{{ editingLot ? 'Editar lote' : 'Agregar proveedor' }}</h2>
+      <p class="modal-description">Producto: <strong>{{ selectedProduct.nombre }}</strong>. Cada proveedor tiene su propio precio y stock.</p>
+      <div *ngIf="errorMessage" class="alert alert-error modal-alert" role="alert">{{ errorMessage }}</div>
+      <form class="form-stack" (ngSubmit)="saveLot()" #lotFormRef="ngForm">
+        <label for="lot-supplier">Proveedor</label>
+        <select
+          *ngIf="!editingLot"
+          id="lot-supplier"
+          name="supplier"
+          [(ngModel)]="lotForm.idProveedor"
+          required
+        >
+          <option [ngValue]="0" disabled>Selecciona un proveedor</option>
+          <option *ngFor="let supplier of availableSuppliers" [ngValue]="supplier.id">{{ supplier.nombre }}</option>
+        </select>
+        <input *ngIf="editingLot" id="lot-supplier" type="text" [value]="editingLot.nombreProveedor" readonly />
+        <p *ngIf="availableSuppliers.length === 0 && !editingLot" class="field-hint">
+          {{ suppliers.length === 0 ? 'No hay proveedores registrados. Registra proveedores para poder agregar lotes.' : 'Todos los proveedores ya tienen un lote para este producto.' }}
+        </p>
+        <div class="form-row">
+          <div>
+            <label for="lot-price">Precio (USD)</label>
+            <input id="lot-price" name="price" type="number" min="0" step="1" [(ngModel)]="lotForm.precio" required />
+          </div>
+          <div>
+            <label for="lot-stock">Stock (unidades)</label>
+            <input id="lot-stock" name="stock" type="number" min="0" step="1" [(ngModel)]="lotForm.stock" required />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="button button-secondary" type="button" (click)="closeModal()">Cancelar</button>
+          <button class="button button-primary" type="submit" [disabled]="submitting || lotFormRef.invalid || (availableSuppliers.length === 0 && !editingLot)">
+            {{ submitting ? 'Guardando...' : editingLot ? 'Guardar cambios' : 'Guardar lote' }}
+          </button>
+        </div>
+      </form>
+    </ng-container>
+  </section>
+</div>

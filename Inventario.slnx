@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="Database/Database.csproj" />
+  <Project Path="Frontend/Frontend.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="Backend/Backend.csproj" />
+</Solution>
